@@ -25,8 +25,8 @@ pub struct Archive {
     meta: WadMetadata,
 }
 
-struct OpenWad {
-    file: RefCell<BufReader<File>>,
+struct OpenWad<T: Read + Seek> {
+    file: RefCell<BufReader<T>>,
     index_map: IndexMap<WadName, usize>,
     lumps: Vec<LumpInfo>,
     levels: Vec<usize>,
@@ -59,9 +59,20 @@ impl Archive {
         })
     }
 
-    fn open_wad(wad_path: &Path) -> Result<OpenWad> {
+    fn open_wad(wad_path: &Path) -> Result<OpenWad<File>> {
         // Open file, read and check header.
-        let mut file = BufReader::new(File::open(&wad_path).chain_err(ErrorKind::on_file_open)?);
+        let file = File::open(&wad_path).chain_err(ErrorKind::on_file_open)?;
+
+        Archive::open_wad_from_reader(file)
+    }
+
+    #[cfg(fuzzing)]
+    pub fn open_wad_fuzz<T: Read + Seek>(wad: T) {
+        let _ = Archive::open_wad_from_reader(wad);
+    }
+
+    fn open_wad_from_reader<T: Read + Seek>(wad: T) -> Result<OpenWad<T>> {
+        let mut file = BufReader::new(wad);
 
         let header: WadInfo =
             bincode::deserialize_from(&mut file).chain_err(ErrorKind::bad_wad_header)?;
