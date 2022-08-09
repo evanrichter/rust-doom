@@ -1,0 +1,28 @@
+[package]
+name = "wad-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+memfd_path = "0.1"
+
+[dependencies.wad]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "parse-wad"
+path = "fuzz_targets/parse-wad.rs"
+test = false
+doc = false
