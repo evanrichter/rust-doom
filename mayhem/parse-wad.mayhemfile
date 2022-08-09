@@ -1,0 +1,7 @@
+project: rust-doom
+target: parse-wad
+
+cmds:
+  - cmd: /parse-wad
+  - cmd: /parse-wad_no_inst @@
+    libfuzzer: false
